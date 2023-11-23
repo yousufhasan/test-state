@@ -1,6 +1,6 @@
 import { Input, withLabel } from '@demystdata/anz-gobiz-ui-components';
-import { useMachine } from '@xstate/react';
-import { assign, createMachine, sendParent } from 'xstate';
+import { useSelector } from '@xstate/react';
+import { assign, createEmptyActor, createMachine, sendParent } from 'xstate';
 
 import { assetFinanceTheme } from '../../../theme';
 import { Title } from './Title';
@@ -57,12 +57,12 @@ export const applicantDetailsMachine = createMachine(
       },
       [ApplicantDetailsState.Completed]: {
         entry: 'childCompleted',
-        /*on: {
+        on: {
           FIELD_CHANGED: {
             target: ApplicantDetailsState.Completed,
             actions: 'assignFieldValue',
           },
-        }, */
+        },
       },
     },
   },
@@ -121,11 +121,13 @@ const MobilePhoneInput = withLabel(Input, {
   theme: assetFinanceTheme.primary.label!,
 });
 
-export function ApplicantDetails() {
-  const [state, send] = useMachine(applicantDetailsMachine, { devTools: true });
-  const { title, firstName, middleName, lastName, mobilePhoneNumber, businessEmail } = state.context;
+export function ApplicantDetails({ actor }: any) {
+  const state = useSelector(actor ?? createEmptyActor(), s => s);
+  const { title, firstName, middleName, lastName, mobilePhoneNumber, businessEmail } = state.context ?? {};
+
+  // console.log(state.value, 'here in app details');
   const handleChange = (field: string) => (nextValue: string) => {
-    send({ type: 'FIELD_CHANGED', field, value: nextValue });
+    actor.send({ type: 'FIELD_CHANGED', field, value: nextValue });
   };
 
   return (
